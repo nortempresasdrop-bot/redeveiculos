@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUp } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -12,14 +12,31 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            phone,
+          },
+        },
+      });
+
+      if (error) throw error;
+
       toast.success('Cadastro realizado! Verifique seu email.');
       router.push('/login');
     } catch (error: any) {
@@ -29,51 +46,68 @@ export default function SignUpPage() {
     }
   }
 
+  if (!mounted) return null;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Cadastro</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-blue-900 px-4">
+      <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">🚗 Rede Veículos</h1>
+          <p className="text-gray-600 mt-2">Crie sua conta</p>
+        </div>
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Nome</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nome Completo
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="João Silva"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="seu@email.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Telefone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Telefone
+            </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="(11) 98850-2098"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Senha</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Senha
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="••••••••"
               required
             />
           </div>
@@ -81,15 +115,15 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-secondary text-white py-2 rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
           >
             {loading ? 'Cadastrando...' : 'Cadastrar'}
           </button>
         </form>
 
-        <p className="text-center mt-4 text-sm">
+        <p className="text-center mt-6 text-sm text-gray-600">
           Já tem conta?{' '}
-          <Link href="/login" className="text-secondary font-medium">
+          <Link href="/login" className="text-blue-600 font-medium hover:underline">
             Faça login
           </Link>
         </p>
